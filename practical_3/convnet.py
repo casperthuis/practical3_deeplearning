@@ -5,7 +5,7 @@ from __future__ import print_function
 import tensorflow as tf
 import numpy as np
 from tensorflow.contrib.layers import initializers
-
+from tensorflow.contrib.layers import regularizers
 
 class ConvNet(object):
     """
@@ -24,6 +24,9 @@ class ConvNet(object):
                           output dimensions of the ConvNet.
         """
         self.n_classes = n_classes
+        self.weight_reg_strength = 0.001
+        self.fcl_initialiser = initializers.xavier_initializer()
+        self.conv_initialiser = initializers.xavier_initializer_conv2d()
 
     def inference(self, x):
         """
@@ -51,21 +54,19 @@ class ConvNet(object):
                   network. These logits can then be used with loss and accuracy
                   to evaluate the model.
         """
+
         with tf.variable_scope('ConvNet'):
             ########################
             # PUT YOUR CODE HERE  #
             ########################
             #conv1
             with tf.name_scope('conv1') as scope:
-                # conv1_k_size = tf.constant([5,5])
-                # conv1_f_depth = tf.constant(3)
-                # conv1_o_depth = tf.constant(64)
-                # conv1_stride = tf.constant([1,1])
 
                 weights = tf.get_variable(
                             name="conv1/weights",
                             shape= [5 ,5, 3, 64],
-                            initializer=tf.random_normal_initializer()
+                            initializer=self.conv_initialiser,
+                            regularizer = regularizers.l2_regularizer(self.weight_reg_strength)
                             )
 
                 bias = tf.get_variable(
@@ -85,7 +86,8 @@ class ConvNet(object):
                 weights = tf.get_variable(
                     name="conv2/weights",
                     shape=[5, 5, 64, 64],
-                    initializer=tf.random_normal_initializer()
+                    initializer=self.conv_initialiser,
+                    regularizer = regularizers.l2_regularizer(self.weight_reg_strength)
                 )
 
                 bias = tf.get_variable(
@@ -111,7 +113,8 @@ class ConvNet(object):
                 weights = tf.get_variable(
                     # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
                     shape=[flatten_input.get_shape()[1].value, 384],
-                    initializer= tf.random_normal_initializer(),
+                    initializer= self.fcl_initialiser,
+                    regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
                     name="fcl1/weights")
 
                 # Initialise bias with the settings of FLAGS
@@ -128,8 +131,8 @@ class ConvNet(object):
                 weights = tf.get_variable(
                     # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
                     shape=[384, 192],
-                    initializer=tf.random_normal_initializer(),
-
+                    initializer= self.fcl_initialiser,
+                    regularizer= regularizers.l2_regularizer(self.weight_reg_strength),
                     name="fcl2/weights")
 
                 # Initialise bias with the settings of FLAGS
@@ -145,7 +148,8 @@ class ConvNet(object):
                     weights = tf.get_variable(
                         # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
                         shape=[192, 10],
-                        initializer=tf.random_normal_initializer(),
+                        initializer=self.fcl_initialiser,
+                        regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
                         name="fcl3/weights")
 
                     # Initialise bias with the settings of FLAGS
@@ -182,9 +186,6 @@ class ConvNet(object):
         ########################
         # PUT YOUR CODE HERE  #
         ########################
-        print(logits.get_shape)
-        print(labels.get_shape)
-
         correct_pred = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
         # Calculate accuracy
         accuracy = tf.reduce_mean(tf.cast(correct_pred, "float"))
@@ -218,12 +219,10 @@ class ConvNet(object):
         ########################
         # PUT YOUR CODE HERE  #
         ########################
-        print(logits.get_shape)
-        print(labels.get_shape)
         loss_out = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, labels))
 
         # The loss
-        regu_loss = sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
+        regu_loss = tf.reduce_sum((tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)))
 
         loss = tf.add(loss_out, regu_loss)
         ########################

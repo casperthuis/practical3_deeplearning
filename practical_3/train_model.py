@@ -82,10 +82,13 @@ def train():
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    x = tf.placeholder("float", [None, 32,32, 3], name="X_train")
-    # TODO CHANGE 10 TO VARIABLE
-    y = tf.placeholder("float", [None, 10], name="Y_train")
     Convnn = convnet.ConvNet()
+
+    with tf.name_scope('x'):
+        x = tf.placeholder("float", [None, 32,32, 3], name="X_train")
+    # TODO CHANGE 10 TO VARIABLE
+    with tf.name_scope('y'):
+        y = tf.placeholder("float", [None, Convnn.n_classes], name="Y_train")
 
     # initialize graph, accuracy and loss
     logits = Convnn.inference(x)
@@ -109,7 +112,7 @@ def train():
                                           feed_dict={x: x_train,
                                                      y: y_train})
 
-            if i % 100 == 0 or i == 1:
+            if i % EVAL_FREQ_DEFAULT == 0 or i == 1:
                 print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".format(
                     i, FLAGS.max_steps, l_train, acc_train))
 
