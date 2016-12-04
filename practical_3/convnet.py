@@ -24,9 +24,10 @@ class ConvNet(object):
                           output dimensions of the ConvNet.
         """
         self.n_classes = n_classes
-        self.weight_reg_strength = 0.001
+        self.weight_reg_strength = 0.000
         self.fcl_initialiser = initializers.xavier_initializer()
         self.conv_initialiser = initializers.xavier_initializer_conv2d()
+        self.summary = False 
 
     def inference(self, x):
         """
@@ -54,111 +55,118 @@ class ConvNet(object):
                   network. These logits can then be used with loss and accuracy
                   to evaluate the model.
         """
-
+				
         with tf.variable_scope('ConvNet'):
             ########################
             # PUT YOUR CODE HERE  #
             ########################
             #conv1
-            with tf.name_scope('conv1') as scope:
-
-                weights = tf.get_variable(
-                            name="conv1/weights",
-                            shape= [5 ,5, 3, 64],
-                            initializer=self.conv_initialiser,
-                            regularizer = regularizers.l2_regularizer(self.weight_reg_strength)
-                            )
-
-                bias = tf.get_variable(
-                            name='conv1/bias',
-                            shape= [64],
-                            initializer= tf.constant_initializer(0.0))
-
-                conv = tf.nn.conv2d(x, weights, [1, 1, 1, 1], padding='SAME')
-                relu = tf.nn.relu(tf.nn.bias_add(conv, bias))
-                conv1 = tf.nn.max_pool(relu,
-                                       ksize= [1, 3, 3, 1],
-                                       strides=[1, 2, 2, 1],
-                                       padding='SAME',
-                                       name='pool1')
+            
+            conv1 = self._conv_layer(x, [5,5,3,64], 1)
+            conv2 = self._conv_layer(conv1, [5,5,64,64], 2)
+            flatten_input = tf.reshape(conv2, [-1, 64*8*8])
+            
+            fcl1 = self._fcl_layer(flatten_input, [flatten_input.get_shape()[1].value, 384], 1)
+            fcl2 = self._fcl_layer(fcl1, [fcl1.get_shape()[1].value, 192], 2)
+            logits = self._fcl_layer(fcl2, [fcl2.get_shape()[1].value, 10], 3, last_layer=True)
+#            with tf.name_scope('conv1') as scope:
+#                weights = tf.get_variable(
+#                            name="conv1/weights",
+#                            shape= [5 ,5, 3, 64],
+#                            initializer=self.conv_initialiser,
+#                            regularizer = regularizers.l2_regularizer(self.weight_reg_strength)
+#                            )
+#
+#                bias = tf.get_variable(
+#                            name='conv1/bias',
+#                            shape= [64],
+#                            initializer= tf.constant_initializer(0.0))
+#
+#                conv = tf.nn.conv2d(x, weights, [1, 1, 1, 1], padding='SAME')
+#                relu = tf.nn.relu(tf.nn.bias_add(conv, bias))
+#                conv1 = tf.nn.max_pool(relu,
+#                                       ksize= [1, 3, 3, 1],
+#                                       strides=[1, 2, 2, 1],
+#                                       padding='SAME',
+#                                       name='pool1')
             # conv2
-            with tf.name_scope('conv2') as scope:
-                weights = tf.get_variable(
-                    name="conv2/weights",
-                    shape=[5, 5, 64, 64],
-                    initializer=self.conv_initialiser,
-                    regularizer = regularizers.l2_regularizer(self.weight_reg_strength)
-                )
+#            with tf.name_scope('conv2') as scope:
+#                weights = tf.get_variable(
+#                    name="conv2/weights",
+#                    shape=[5, 5, 64, 64],
+#                    initializer=self.conv_initialiser,
+#                    regularizer = regularizers.l2_regularizer(self.weight_reg_strength)
+#                )
 
-                bias = tf.get_variable(
-                    name='conv2/bias',
-                    shape=[64],
-                    initializer=tf.constant_initializer(0.0))
+#                bias = tf.get_variable(
+#                    name='conv2/bias',
+#                    shape=[64],
+#                    initializer=tf.constant_initializer(0.0))
+#
+#                conv = tf.nn.conv2d(conv1, weights, [1, 1, 1, 1], padding='SAME')
+#                relu = tf.nn.relu(tf.nn:tabe.bias_add(conv, bias))
+#                conv2 = tf.nn.max_pool(relu,
+#                                       ksize=[1, 3, 3, 1],
+#                                       strides=[1, 2, 2, 1],
+#                                       padding='SAME',
+#                                       name='pool')
+#
+#
+#            flatten_input = tf.reshape(conv2, [-1, 64 * 8 * 8])
 
-                conv = tf.nn.conv2d(conv1, weights, [1, 1, 1, 1], padding='SAME')
-                relu = tf.nn.relu(tf.nn.bias_add(conv, bias))
-                conv2 = tf.nn.max_pool(relu,
-                                       ksize=[1, 3, 3, 1],
-                                       strides=[1, 2, 2, 1],
-                                       padding='SAME',
-                                       name='pool')
+#            with tf.name_scope('fcl1') as scope:
+#                # print(conv2.get_shape)
+#                # TODO REMOVE NUMBER HARDCODED
+#                flatten_input = tf.reshape(conv2, [-1, 64 * 8 * 8])
+#                # print(flatten_input.get_shape())
+#                weights = tf.get_variable(
+#                    # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
+#                    shape=[flatten_input.get_shape()[1].value, 384],
+#                    initializer= self.fcl_initialiser,
+#                    regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
+#                    name="fcl1/weights")
+#
+#                # Initialise bias with the settings of FLAGS
+#                bias = tf.get_variable(
+#                    shape=[384],
+#                    initializer=tf.constant_initializer(0.0),
+#                    name="fcl1/bias")
+#
+#                fcl1_input = tf.nn.bias_add(tf.matmul(flatten_input, weights), bias)
+#                fcl1_output = tf.nn.relu(fcl1_input)
 
-
-
-            with tf.name_scope('fcl1') as scope:
-                # print(conv2.get_shape)
-                # TODO REMOVE NUMBER HARDCODED
-                flatten_input = tf.reshape(conv2, [-1, 64 * 8 * 8])
-                # print(flatten_input.get_shape())
-                weights = tf.get_variable(
-                    # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
-                    shape=[flatten_input.get_shape()[1].value, 384],
-                    initializer= self.fcl_initialiser,
-                    regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
-                    name="fcl1/weights")
-
-                # Initialise bias with the settings of FLAGS
-                bias = tf.get_variable(
-                    shape=[384],
-                    initializer=tf.constant_initializer(0.0),
-                    name="fcl1/bias")
-
-                fcl1_input = tf.nn.bias_add(tf.matmul(flatten_input, weights), bias)
-                fcl1_output = tf.nn.relu(fcl1_input)
-
-            with tf.name_scope('fcl2'):
-
-                weights = tf.get_variable(
-                    # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
-                    shape=[384, 192],
-                    initializer= self.fcl_initialiser,
-                    regularizer= regularizers.l2_regularizer(self.weight_reg_strength),
-                    name="fcl2/weights")
-
-                # Initialise bias with the settings of FLAGS
-                bias = tf.get_variable(
-                    shape=[192],
-                    initializer=tf.constant_initializer(0.0),
-                    name="fcl2/bias")
-
-                fcl2_input = tf.nn.bias_add(tf.matmul(fcl1_output, weights), bias)
-                fcl2_output = tf.nn.relu(fcl2_input)
-
-                with tf.name_scope('fcl3'):
-                    weights = tf.get_variable(
-                        # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
-                        shape=[192, 10],
-                        initializer=self.fcl_initialiser,
-                        regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
-                        name="fcl3/weights")
-
-                    # Initialise bias with the settings of FLAGS
-                    bias = tf.get_variable(
-                        shape=[10],
-                        initializer=tf.constant_initializer(0.0),
-                        name="fcl3/bias")
-
-                    logits = tf.nn.bias_add(tf.matmul(fcl2_output, weights), bias)
+#            with tf.name_scope('fcl2'):
+#
+#                weights = tf.get_variable(
+#                    # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
+#                    shape=[384, 192],
+#                    initializer= self.fcl_initialiser,
+#                    regularizer= regularizers.l2_regularizer(self.weight_reg_strength),
+#                    name="fcl2/weights")
+#
+#                # Initialise bias with the settings of FLAGS
+#                bias = tf.get_variable(
+#                    shape=[192],
+#                    initializer=tf.constant_initializer(0.0),
+#                    name="fcl2/bias")
+#
+#                fcl2_input = tf.nn.bias_add(tf.matmul(fcl1, weights), bias)
+#                fcl2_output = tf.nn.relu(fcl2_input)
+#            with tf.name_scope('fcl3'):
+#                weights = tf.get_variable(
+#                    # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
+#                    shape=[192, 10],
+#                    initializer=self.fcl_initialiser,
+#                    regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
+#                    name="fcl3/weights")
+#
+#                # Initialise bias with the settings of FLAGS
+#                bias = tf.get_variable(
+#                    shape=[10],
+#                    initializer=tf.constant_initializer(0.0),
+#                    name="fcl3/bias")
+#
+#                logits = tf.nn.bias_add(tf.matmul(fcl2, weights), bias)
 
                 ########################
             # END OF YOUR CODE    #
@@ -189,10 +197,12 @@ class ConvNet(object):
         correct_pred = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
         # Calculate accuracy
         accuracy = tf.reduce_mean(tf.cast(correct_pred, "float"))
+        if self.summary:
+            tf.scalar_summary("accuracy", accuracy) 
         ########################
         # END OF YOUR CODE    #
         ########################
-
+	
         return accuracy
 
     def loss(self, logits, labels):
@@ -219,15 +229,95 @@ class ConvNet(object):
         ########################
         # PUT YOUR CODE HERE  #
         ########################
-        loss_out = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, labels))
+        cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, labels))
 
         # The loss
-        regu_loss = tf.reduce_sum((tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)))
+        reg_loss = tf.reduce_sum((tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)))
+				
+        full_loss = tf.add(cross_entropy, reg_loss)
+        
+        if self.summary:
+            tf.scalar_summary("cross_entropy", cross_entropy)
+            tf.scalar_summary("reg_loss", reg_loss)
+            tf.scalar_summary("full_loss", full_loss)
 
-        loss = tf.add(loss_out, regu_loss)
         ########################
         # END OF YOUR CODE    #
         ########################
 
-        return loss
+        return full_loss 
 
+    def _conv_layer(self, out_p, w_dims, n_layer):	
+        with tf.name_scope('conv%i' %n_layer) as scope:
+        # Create weights
+            weights = tf.get_variable(name="conv%i/weights" %n_layer,
+                                    shape= w_dims,
+                                    initializer= self.conv_initialiser,
+                                    regularizer = regularizers.l2_regularizer(self.weight_reg_strength))
+                
+            # Create bias
+            bias = tf.get_variable(	name='conv%i/bias' %n_layer,
+                                        shape= w_dims[-1],
+                                        initializer= tf.constant_initializer(0.0))
+                
+            # Create input by applying convoltion with the weights on the input
+            conv_in = tf.nn.conv2d(out_p, weights, [1, 1, 1, 1], padding='SAME')
+                
+            # Add bias and caculate activation
+            relu = tf.nn.relu(tf.nn.bias_add(conv_in, bias))
+                
+            # Apply max pooling
+            out = tf.nn.max_pool(	relu,
+                                  ksize= [1, 3, 3, 1],
+                                  strides=[1, 2, 2, 1],
+                                  padding='SAME',
+                                  name='pool%i'%n_layer)
+                
+            # add summary
+            if self.summary:
+              pass
+              #tf.histogram_summary("conv%i/out" %n_layer, out)
+              #tf.histogram_summary("conv%i/relu" %n_layer, relu)
+              #tf.histogram_summary("conv%i/in" %n_layer, conv_in)
+              #tf.histogram_summary("conv%i/weights"% n_layer, weights)
+              #tf.histogram_summary("conv%i/bias"% n_layer, bias)
+                  
+            return out	
+
+    def _fcl_layer(self, out_p, w_dims, n_layer, last_layer=False):
+        """
+        Adds a fully connected layer to the graph,
+        Args:   out_p: A tensor float containing the output from the previous layer
+                w_dims: a vector of ints containing weight dims
+				n_layer: an int containing the number of the layer
+        """
+        with tf.name_scope('fcl%i'%n_layer):
+            # Creates weights
+            weights = tf.get_variable(
+                shape=w_dims,
+                initializer= self.fcl_initialiser,
+                regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
+                name="fcl%i/weights"%n_layer)
+
+            # Create bias
+            bias = tf.get_variable(
+                shape=w_dims[-1],
+                initializer=tf.constant_initializer(0.0),
+                name="fcl%i/bias"%n_layer)
+            
+            # Calculate input
+            
+            fcl_out = tf.nn.bias_add(tf.matmul(out_p, weights), bias)
+            
+            # Calculate activation
+            if not last_layer:
+                fcl_out = tf.nn.relu(fcl_out, name="fcl%i"%n_layer)
+
+            # Summaries
+            if self.summary: 
+                pass
+                #tf.histogram_summary("fcl%i/out" %n_layer, fcl_out)
+                #tf.histogram_summary("fcl%i/weights"% n_layer, weights)
+                #tf.histogram_summary("fcl%i/bias"% n_layer, bias)
+            
+            return fcl_out

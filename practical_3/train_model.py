@@ -5,10 +5,12 @@ from __future__ import print_function
 import argparse
 import os
 import convnet
-
+import time
 import tensorflow as tf
 import numpy as np
 import cifar10_utils
+from sklearn.manifold import TSNE
+#import matplotlib import offsetbox
 
 LEARNING_RATE_DEFAULT = 1e-4
 BATCH_SIZE_DEFAULT = 128
@@ -17,7 +19,8 @@ EVAL_FREQ_DEFAULT = 1000
 CHECKPOINT_FREQ_DEFAULT = 5000
 PRINT_FREQ_DEFAULT = 10
 OPTIMIZER_DEFAULT = 'ADAM'
-
+SUMMARY_DEFAULT = True 
+SAVER_DEFAULT = True
 DATA_DIR_DEFAULT = './cifar10/cifar-10-batches-py'
 LOG_DIR_DEFAULT = './logs/cifar10'
 CHECKPOINT_DIR_DEFAULT = './checkpoints'
@@ -37,7 +40,8 @@ def train_step(loss):
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    raise NotImplementedError
+    optimizer = tf.train.AdamOptimizer
+    train_op = optimizer(FLAGS.learning_rate, name='optimizer').minimize(loss) 
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -83,43 +87,68 @@ def train():
     # PUT YOUR CODE HERE  #
     ########################
     Convnn = convnet.ConvNet()
-
+    Convnn.summary = SUMMARY_DEFAULT
     with tf.name_scope('x'):
         x = tf.placeholder("float", [None, 32,32, 3], name="X_train")
-    # TODO CHANGE 10 TO VARIABLE
     with tf.name_scope('y'):
         y = tf.placeholder("float", [None, Convnn.n_classes], name="Y_train")
 
     # initialize graph, accuracy and loss
     logits = Convnn.inference(x)
+
     loss = Convnn.loss(logits, y)
     accuracy = Convnn.accuracy(logits,y)
-    optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate, name='optimizer').minimize(loss)
+    optimizer = train_step(loss)
 
     init = tf.initialize_all_variables()
+    if SUMMARY_DEFAULT:    
+        merge = tf.merge_all_summaries()
+
+    if SAVE_DEFAULT:
+        saver = tf.train.Saver()
 
     with tf.Session() as sess:
         sess.run(init)
         cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
         x_test, y_test = cifar10.test.images, cifar10.test.labels
-        print(x_test.shape)
-        print(y_test.shape)
+        
+        if SUMMARY_DEFAULT:
+            train_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/train", sess.graph)
+            test_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/test")
 
         for i in range(1, FLAGS.max_steps + 1):
             x_train, y_train = cifar10.train.next_batch(FLAGS.batch_size)
 
-            _, l_train, acc_train = sess.run([optimizer, loss, accuracy],
-                                          feed_dict={x: x_train,
-                                                     y: y_train})
+            _, l_train, acc_train= sess.run([optimizer, loss, accuracy],
+                                            feed_dict={x: x_train, y: y_train})
+            
+            if SUMMARY_DEFAULT:
+                _, l_train, acc_train, summary = sess.run([optimizer, loss, accuracy, merge],
+                                            feed_dict={x: x_train, y: y_train})
+                train_writer.add_summary(summary, i)
+            else:
+                _, l_train, acc_train = sess.run([optimizer, loss, accuracy],
+                                            feed_dict={x: x_train, y: y_train})
+ 
 
             if i % EVAL_FREQ_DEFAULT == 0 or i == 1:
                 print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".format(
                     i, FLAGS.max_steps, l_train, acc_train))
+                if SUMMARY_DEFAULT:
+                    l_val, acc_val, summary = sess.run([loss, accuracy, merge], 
+                                          feed_dict={ x: x_test, y: y_test})
+                
+                    test_writer.add_summary(summary, i)
 
-                l_val, acc_val = sess.run([loss, accuracy], feed_dict={ x: x_test,
-                                                                        y: y_test})
+                else:
+                    l_val, acc_val = sess.run([loss, accuracy], 
+                                          feed_dict={ x: x_test, y: y_test})
+
+
                 print("Iteration {0:d}/{1:d}. Validation Loss = {2:.3f}, Validation Accuracy = {3:.3f}".format(
                     i, FLAGS.max_steps, l_val, acc_val))
+    if SAVER_DEFAULT:
+        saver.sess(sess, 'model')
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -190,7 +219,18 @@ def feature_extraction():
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    raise NotImplementedError
+    sess = tf.Session()
+    new_saver = tf.train.import_meta_graph('model.meta')
+    new_saver.restore(sess, tf.train.latest_checpoint('./'))
+  
+    with tf.Session() as sess:
+        sess.run(init)
+        cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
+        x_test, y_test = cifar10.test.images, cifar10.test.labels
+
+    tnse = manifold.TSNE(n_components=2, init='pca', random_state=0)
+    X_tsne = tsne.fit_transform(fcl2)
+    
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -216,11 +256,41 @@ def print_flags():
     for key, value in vars(FLAGS).items():
         print(key + ' : ' + str(value))
 
+
+#def plot_embedding(X, title=None):
+#    x_min, x_max = np.min(X, 0), np.max(X, 0)
+#    X = (X - x_min) / (x_max - x_min)
+#
+#    plt.figure()
+#    ax = plt.subplot(111)
+#    for i in range(X.shape[0]):
+#        plt.text(X[i, 0], X[i, 1], str(digits.target[i]),
+#                 color=plt.cm.Set1(y[i] / 10.),
+#                 fontdict={'weight': 'bold', 'size': 9})
+#
+#    if hasattr(offsetbox, 'AnnotationBbox'):
+#        # only print thumbnails with matplotlib > 1.0
+#        shown_images = np.array([[1., 1.]])  # just something big
+#        for i in range(digits.data.shape[0]):
+#              dist = np.sum((X[i] - shown_images) ** 2, 1)
+#              if np.min(dist) < 4e-3:
+#                  # don't show points that are too close
+#                  continue
+#                                                                                                     shown_images = np.r_[shown_images, [X[i]]]
+#        imagebox = offsetbox.AnnotationBbox(
+#              offsetbox.OffsetImage(digits.images[i], cmap=plt.cm.gray_r),
+#                                                X[i])
+#              ax.add_artist(imagebox)
+#3      plt.xticks([]), plt.yticks([])
+#      if title is not None:
+#              plt.title(title)
+ 
+
 def main(_):
     print_flags()
 
     initialize_folders()
-
+    start = time.time()
     if FLAGS.is_train:
         if FLAGS.train_model == 'linear':
             train()
@@ -230,7 +300,7 @@ def main(_):
             raise ValueError("--train_model argument can be linear or siamese")
     else:
         feature_extraction()
-
+    print(time.time() - start)
 if __name__ == '__main__':
     # Command line arguments
     parser = argparse.ArgumentParser()
