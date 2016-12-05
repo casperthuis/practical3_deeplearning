@@ -45,14 +45,11 @@ class Siamese(object):
             ########################
             # PUT YOUR CODE HERE  #
             ########################
-
             conv1 = self._conv_layer(x, [5, 5, 3, 64], 1, reuse=reuse)
             conv2 = self._conv_layer(conv1, [5, 5, 64, 64], 2, reuse=reuse)
             flatten_input = tf.reshape(conv2, [-1, 64 * 8 * 8], reuse=reuse)
             fcl1 = self._fcl_layer(flatten_input, [flatten_input.get_shape()[1].value, 384], 1, reuse=reuse)
             l2_out = self._fcl_layer(fcl1, [fcl1.get_shape()[1].value, 192], 2, last_layer=True, reuse=reuse)
-
-
 
             ########################
             # END OF YOUR CODE    #
@@ -97,6 +94,7 @@ class Siamese(object):
 
         return loss
 
+
     def _conv_layer(self, out_p, w_dims, n_layer, reuse):
         with tf.name_scope('conv%i' % n_layer):
             # Create weights
@@ -134,10 +132,12 @@ class Siamese(object):
             return out
 
     def _fcl_layer(self, out_p, w_dims, n_layer, last_layer=False, reuse):
+
         """
         Adds a fully connected layer to the graph,
         Args:   out_p: A tensor float containing the output from the previous layer
                 w_dims: a vector of ints containing weight dims
+
                 n_layer: an int containing the number of the layer
         """
         with tf.name_scope('fcl%i' % n_layer):
@@ -148,10 +148,12 @@ class Siamese(object):
                 regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
                 name="fcl%i/weights" % n_layer)
 
+
             # Create bias
             bias = tf.get_variable(
                 shape=w_dims[-1],
                 initializer=tf.constant_initializer(0.0),
+
                 name="fcl%i/bias" % n_layer)
 
             # Calculate input
@@ -170,3 +172,4 @@ class Siamese(object):
                 # tf.histogram_summary("fcl%i/bias"% n_layer, bias)
 
             return fcl_out
+

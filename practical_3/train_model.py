@@ -24,7 +24,7 @@ EVAL_FREQ_DEFAULT = 1000
 CHECKPOINT_FREQ_DEFAULT = 5000
 PRINT_FREQ_DEFAULT = 10
 OPTIMIZER_DEFAULT = 'ADAM'
-SUMMARY_DEFAULT = True 
+SUMMARY_DEFAULT = False 
 SAVER_DEFAULT = True
 DATA_DIR_DEFAULT = './cifar10/cifar-10-batches-py'
 LOG_DIR_DEFAULT = './logs/cifar10'
@@ -153,7 +153,8 @@ def train():
                 print("Iteration {0:d}/{1:d}. Validation Loss = {2:.3f}, Validation Accuracy = {3:.3f}".format(
                     i, FLAGS.max_steps, l_val, acc_val))
         if SAVER_DEFAULT:
-            saver.sess(sess, FLAGS.checkpoint_dir + '/model')
+
+            saver.save(sess, FLAGS.checkpoint_dir + '/my_model.cpkt')
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -267,7 +268,6 @@ def feature_extraction():
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-
     # Set the random seeds for reproducibility. DO NOT CHANGE.
     tf.set_random_seed(42)
     np.random.seed(42)
@@ -316,17 +316,7 @@ def feature_extraction():
         # for label in range(Convnn.n_classes):
         #     y == label
 
-
-
-
-
-
-
-
-
-
-
-        ########################
+    ########################
     # END OF YOUR CODE    #
     ########################
 
@@ -386,7 +376,7 @@ def main(_):
 
     initialize_folders()
     start = time.time()
-    if FLAGS.is_train:
+    if int(FLAGS.is_train):
         if FLAGS.train_model == 'linear':
             train()
         elif FLAGS.train_model == 'siamese':
@@ -396,6 +386,9 @@ def main(_):
     else:
         feature_extraction()
     print(time.time() - start)
+
+
+
 if __name__ == '__main__':
     # Command line arguments
     parser = argparse.ArgumentParser()
@@ -426,3 +419,5 @@ if __name__ == '__main__':
     FLAGS, unparsed = parser.parse_known_args()
 
     tf.app.run()
+
+
