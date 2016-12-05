@@ -154,7 +154,7 @@ def train():
                     i, FLAGS.max_steps, l_val, acc_val))
         if SAVER_DEFAULT:
 
-            saver.save(sess, FLAGS.checkpoint_dir + '/my_model.ckpt')
+            saver.save(sess, FLAGS.checkpoint_dir + '/convnet.ckpt')
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -290,7 +290,7 @@ def feature_extraction():
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
         saver = tf.train.Saver()
-        saver.restore(sess, FLAGS.checkpoint_dir + "/my_model.ckpt")
+        saver.restore(sess, FLAGS.checkpoint_dir + "/convnet.ckpt")
 
         cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
         x_test, y_test = cifar10.test.images, cifar10.test.labels
