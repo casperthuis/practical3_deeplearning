@@ -311,17 +311,17 @@ def feature_extraction():
         print("Calculating TSNE")
         tnse = TSNE(n_components=2, init='pca', random_state=0)
         pca = tnse.fit_transform(fcl2)
-        print(pca[:,0])
+        print(pca[:,0].shape)
         
         
         prediction = np.argmax(logits)
-        print(prediction)
+        print(prediction.shape)
         fig = plt.figure()
-        x = np.random.rand(10)
-        y = np.random.rand(10)
-       
+      
         fig = plt.figure()
-        plt.plot(pca[:,0], pca[:,1], alpha=0.5)
+        for i in len(n_classes):
+            class_points = pca[prediction == label] 
+            plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.Set1(i), alpha=0.5)
 
         plt.savefig('images/tsne_plot.png')
         
