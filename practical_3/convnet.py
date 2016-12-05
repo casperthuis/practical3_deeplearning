@@ -74,10 +74,8 @@ class ConvNet(object):
             fcl2 = self._fcl_layer(fcl1, [fcl1.get_shape()[1].value, 192], 2)
             self.fcl2 = fcl2
             logits = self._fcl_layer(fcl2, [fcl2.get_shape()[1].value, 10], 3, last_layer=True)
-<<<<<<< HEAD
             self.logits = logits
-=======
->>>>>>> d0ad94522c94877074c0dbbfd34e7ec080da05ed
+
             ########################
             # END OF YOUR CODE    #
             ########################

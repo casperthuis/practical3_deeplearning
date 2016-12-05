@@ -154,7 +154,7 @@ def train():
                     i, FLAGS.max_steps, l_val, acc_val))
         if SAVER_DEFAULT:
 
-            saver.save(sess, FLAGS.checkpoint_dir + '/my_model.cpkt')
+            saver.save(sess, FLAGS.checkpoint_dir + '/my_model.ckpt')
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -290,7 +290,7 @@ def feature_extraction():
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
         saver = tf.train.Saver()
-        saver.restore(sess, FLAGS.checkpoint_dir + "/model.ckpt")
+        saver.restore(sess, FLAGS.checkpoint_dir + "/my_model.ckpt")
 
         cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
         x_test, y_test = cifar10.test.images, cifar10.test.labels
@@ -313,8 +313,6 @@ def feature_extraction():
             non_class_pc = pc[prediction != label]
             data = np.random.choice(len(non_class_pc), len(class_pc))
             
-        # for label in range(Convnn.n_classes):
-        #     y == label
 
     ########################
     # END OF YOUR CODE    #
@@ -341,34 +339,6 @@ def print_flags():
     for key, value in vars(FLAGS).items():
         print(key + ' : ' + str(value))
 
-
-#def plot_embedding(X, title=None):
-#    x_min, x_max = np.min(X, 0), np.max(X, 0)
-#    X = (X - x_min) / (x_max - x_min)
-#
-#    plt.figure()
-#    ax = plt.subplot(111)
-#    for i in range(X.shape[0]):
-#        plt.text(X[i, 0], X[i, 1], str(digits.target[i]),
-#                 color=plt.cm.Set1(y[i] / 10.),
-#                 fontdict={'weight': 'bold', 'size': 9})
-#
-#    if hasattr(offsetbox, 'AnnotationBbox'):
-#        # only print thumbnails with matplotlib > 1.0
-#        shown_images = np.array([[1., 1.]])  # just something big
-#        for i in range(digits.data.shape[0]):
-#              dist = np.sum((X[i] - shown_images) ** 2, 1)
-#              if np.min(dist) < 4e-3:
-#                  # don't show points that are too close
-#                  continue
-#                                                                                                     shown_images = np.r_[shown_images, [X[i]]]
-#        imagebox = offsetbox.AnnotationBbox(
-#              offsetbox.OffsetImage(digits.images[i], cmap=plt.cm.gray_r),
-#                                                X[i])
-#              ax.add_artist(imagebox)
-#3      plt.xticks([]), plt.yticks([])
-#      if title is not None:
-#              plt.title(title)
  
 
 def main(_):

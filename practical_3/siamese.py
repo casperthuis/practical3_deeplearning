@@ -131,7 +131,7 @@ class Siamese(object):
 
             return out
 
-    def _fcl_layer(self, out_p, w_dims, n_layer, last_layer=False, reuse):
+    def _fcl_layer(self, out_p, w_dims, n_layer, last_layer=False, reuse=False):
 
         """
         Adds a fully connected layer to the graph,
@@ -145,7 +145,6 @@ class Siamese(object):
             weights = tf.get_variable(
                 shape=w_dims,
                 initializer=self.fcl_initialiser,
-                regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
                 name="fcl%i/weights" % n_layer)
 
 
@@ -153,7 +152,6 @@ class Siamese(object):
             bias = tf.get_variable(
                 shape=w_dims[-1],
                 initializer=tf.constant_initializer(0.0),
-
                 name="fcl%i/bias" % n_layer)
 
             # Calculate input
