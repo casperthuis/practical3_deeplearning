@@ -27,7 +27,11 @@ class ConvNet(object):
         self.weight_reg_strength = 0.000
         self.fcl_initialiser = initializers.xavier_initializer()
         self.conv_initialiser = initializers.xavier_initializer_conv2d()
-        self.summary = False 
+        self.summary = False
+        self.flatten = None
+        self.fcl1 = None
+        self.fcl2 = None
+        self.logits = None
 
     def inference(self, x):
         """
@@ -60,15 +64,20 @@ class ConvNet(object):
             ########################
             # PUT YOUR CODE HERE  #
             ########################
-            #conv1
             
             conv1 = self._conv_layer(x, [5,5,3,64], 1)
             conv2 = self._conv_layer(conv1, [5,5,64,64], 2)
-            flatten_input = tf.reshape(conv2, [-1, 64*8*8])
-            
-            fcl1 = self._fcl_layer(flatten_input, [flatten_input.get_shape()[1].value, 384], 1)
+            flatten = tf.reshape(conv2, [-1, 64*8*8])
+            self.flatten = flatten
+            fcl1 = self._fcl_layer(flatten, [flatten.get_shape()[1].value, 384], 1)
+            self.fcl2 = fcl1
             fcl2 = self._fcl_layer(fcl1, [fcl1.get_shape()[1].value, 192], 2)
+            self.fcl2 = fcl2
             logits = self._fcl_layer(fcl2, [fcl2.get_shape()[1].value, 10], 3, last_layer=True)
+<<<<<<< HEAD
+            self.logits = logits
+=======
+>>>>>>> d0ad94522c94877074c0dbbfd34e7ec080da05ed
             ########################
             # END OF YOUR CODE    #
             ########################
