@@ -319,8 +319,7 @@ def feature_extraction():
         fig = plt.figure()
         for i in range(Convnn.n_classes):
             class_points = pca[prediction == i]
-            plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.Set(i) , alpha=0.5)
-            print(plt.cm.Set(i)) 
+            plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.rainbow(i) , alpha=0.5)
 
 
         plt.savefig('images/tsne_plot.png')
