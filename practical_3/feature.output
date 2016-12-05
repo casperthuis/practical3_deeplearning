@@ -9,3 +9,13 @@ log_dir : ./logs/cifar10
 train_model : linear
 checkpoint_freq : 5000
 max_steps : 15000
+Creating model
+Tensor("ConvNet/conv1/pool1:0", shape=(?, 16, 16, 64), dtype=float32)
+Tensor("ConvNet/conv2/pool2:0", shape=(?, 8, 8, 64), dtype=float32)
+loading previous session
+Evaluating model
+Calculating TSNE
+[-18.0776648   81.178216    28.35013983 ..., -55.89960925   8.66399269
+ -52.21894997]
+35982
+151.548248053

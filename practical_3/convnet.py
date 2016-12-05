@@ -70,7 +70,7 @@ class ConvNet(object):
             flatten = tf.reshape(conv2, [-1, 64*8*8])
             self.flatten = flatten
             fcl1 = self._fcl_layer(flatten, [flatten.get_shape()[1].value, 384], 1)
-            self.fcl2 = fcl1
+            self.fcl1 = fcl1
             fcl2 = self._fcl_layer(fcl1, [fcl1.get_shape()[1].value, 192], 2)
             self.fcl2 = fcl2
             logits = self._fcl_layer(fcl2, [fcl2.get_shape()[1].value, 10], 3, last_layer=True)

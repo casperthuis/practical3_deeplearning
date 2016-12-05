@@ -12,10 +12,12 @@ import cifar10_utils
 import siamese
 from cifar10_siamese_utils import get_cifar10 as get_cifar_10_siamese
 from sklearn.manifold import TSNE
-import matplotlib.pyplot as plt
 from cifar10_siamese_utils import create_dataset
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt 
 
 LEARNING_RATE_DEFAULT = 1e-4
 BATCH_SIZE_DEFAULT = 128
@@ -292,25 +294,37 @@ def feature_extraction():
         sess.run(tf.initialize_all_variables())
         saver = tf.train.Saver()
         print("loading previous session")
-        # saver.restore(sess, FLAGS.checkpoint_dir + "/convnet.ckpt")
-        saver.restore(sess, FLAGS.checkpoint_dir + "/my_model.cpkt")
+        saver.restore(sess, FLAGS.checkpoint_dir + "/convnet.ckpt")
+        #saver.restore(sess, FLAGS.checkpoint_dir + "/my_model.cpkt")
         print("Evaluating model")
         cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
         x_test, y_test = cifar10.test.images, cifar10.test.labels
-        l, acc, fcl2, fcl1, flatten = sess.run([loss, accuracy, Convnn.fcl2, Convnn.fcl1, Convnn.flatten],
+        l, acc, flatten, fcl1 ,fcl2, logits = sess.run([loss, accuracy,
+                                        Convnn.flatten,
+                                        Convnn.fcl1,
+                                        Convnn.fcl2,
+                                        Convnn.logits ],
+                                      
                                         feed_dict={x: x_test, y: y_test})
 
 
         print("Calculating TSNE")
         tnse = TSNE(n_components=2, init='pca', random_state=0)
-        # tnse.fit_transform(fcl2)
-        # fcl0 = tf.get_default_graph().get_tensor_by_name("ConvNet/conv1/pool1:0")
-        print(fcl2)
-        print(Convnn.fcl1)
-        # pc = tnse[:, 0:2]
-        # prediction = np.argmax(logits)
-        # plt.figure(0)
-        # plt.scatter([pc[:,0], pc[:,1]], prediction, alpha=0.5)
+        pca = tnse.fit_transform(fcl2)
+        print(pca[:,0])
+        
+        
+        prediction = np.argmax(logits)
+        print(prediction)
+        fig = plt.figure()
+        x = np.random.rand(10)
+        y = np.random.rand(10)
+       
+        fig = plt.figure()
+        plt.plot(pca[:,0], pca[:,1], alpha=0.5)
+
+        plt.savefig('images/tsne_plot.png')
+        
         # plt.show()
         #
         # for label in range(Convnn.n_classes):
