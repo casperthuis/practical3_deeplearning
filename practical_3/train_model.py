@@ -311,27 +311,28 @@ def feature_extraction():
         print("Calculating TSNE")
         tnse = TSNE(n_components=2, init='pca', random_state=0)
         pca = tnse.fit_transform(fcl2)
-        print(pca[:,0].shape)
-        
-        
-        prediction = np.argmax(logits)
-        print(prediction.shape)
+        print(pca.shape)
+        print(logits.shape)        
+        prediction = np.argmax(logits, axis=1)
+        print(pca)
+        print(prediction) 
         fig = plt.figure()
-      
-        fig = plt.figure()
-        for i in len(n_classes):
-            class_points = pca[prediction == label] 
-            plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.Set1(i), alpha=0.5)
+        for i in range(Convnn.n_classes):
+            class_points = pca[prediction == i]
+            print(class_points)
+            print(class_points.shape)
+            #plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.Set1(i), alpha=0.5)
 
-        plt.savefig('images/tsne_plot.png')
+
+
+        #plt.savefig('images/tsne_plot.png')
         
-        # plt.show()
-        #
-        # for label in range(Convnn.n_classes):
-        #     class_pc = pc[prediction == label]
-        #     non_class_pc = pc[prediction != label]
-        #     data = np.random.choice(len(non_class_pc), len(class_pc))
-        #
+        #for label in range(Convnn.n_classes):
+        
+        #    class_pc = pc[prediction == label]
+        #    non_class_pc = pc[prediction != label]
+        #    selection_no_class = np.random.choice(len(non_class_pc), len(class_pc))
+             
 
     ########################
     # END OF YOUR CODE    #
@@ -374,7 +375,7 @@ def main(_):
             raise ValueError("--train_model argument can be linear or siamese")
     else:
         feature_extraction()
-    print(time.time() - start)
+    print("Total run time%i" %((time.time() - start)/60.0))
 
 
 
