@@ -180,7 +180,7 @@ class ConvNet(object):
                                   strides=[1, 2, 2, 1],
                                   padding='SAME',
                                   name='pool%i'%n_layer)
-                
+            print(out)
             # add summary
             if self.summary:
               pass

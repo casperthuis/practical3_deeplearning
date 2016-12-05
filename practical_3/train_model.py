@@ -275,6 +275,7 @@ def feature_extraction():
     ########################
     # PUT YOUR CODE HERE  #
     ########################
+    print("Creating model")
     Convnn = convnet.ConvNet()
     Convnn.summary = SUMMARY_DEFAULT
     with tf.name_scope('x'):
@@ -290,29 +291,33 @@ def feature_extraction():
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
         saver = tf.train.Saver()
-        saver.restore(sess, FLAGS.checkpoint_dir + "/convnet.ckpt")
-
+        print("loading previous session")
+        # saver.restore(sess, FLAGS.checkpoint_dir + "/convnet.ckpt")
+        saver.restore(sess, FLAGS.checkpoint_dir + "/my_model.cpkt")
+        print("Evaluating model")
         cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
         x_test, y_test = cifar10.test.images, cifar10.test.labels
+        l, acc, fcl2, fcl1, flatten = sess.run([loss, accuracy, Convnn.fcl2, Convnn.fcl1, Convnn.flatten],
+                                        feed_dict={x: x_test, y: y_test})
 
-        _, l_train, acc_train, logits, fcl2, fcl1, flatten = sess.run([loss, accuracy,
-                                                    Convnn.logits, Convnn.fcl2,
-                                                    Convnn.fcl1, Convnn.flatten],
-                                                feed_dict={x: x_test, y: y_test})
 
+        print("Calculating TSNE")
         tnse = TSNE(n_components=2, init='pca', random_state=0)
-        tnse.fit_transform(fcl2)
-        pc = tnse[:, 0:2]
-        prediction = np.argmax(logits)
-        plt.figure(0)
-        plt.scatter([pc[:,0], pc[:,1]], prediction, alpha=0.5)
-        plt.show()
-
-        for label in range(Convnn.n_classes):
-            class_pc = pc[prediction == label]
-            non_class_pc = pc[prediction != label]
-            data = np.random.choice(len(non_class_pc), len(class_pc))
-            
+        # tnse.fit_transform(fcl2)
+        # fcl0 = tf.get_default_graph().get_tensor_by_name("ConvNet/conv1/pool1:0")
+        print(fcl2)
+        print(Convnn.fcl1)
+        # pc = tnse[:, 0:2]
+        # prediction = np.argmax(logits)
+        # plt.figure(0)
+        # plt.scatter([pc[:,0], pc[:,1]], prediction, alpha=0.5)
+        # plt.show()
+        #
+        # for label in range(Convnn.n_classes):
+        #     class_pc = pc[prediction == label]
+        #     non_class_pc = pc[prediction != label]
+        #     data = np.random.choice(len(non_class_pc), len(class_pc))
+        #
 
     ########################
     # END OF YOUR CODE    #
