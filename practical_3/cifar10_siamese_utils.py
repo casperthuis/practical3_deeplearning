@@ -156,7 +156,11 @@ def create_dataset(source='Train', num_tuples = 500, batch_size = 128, fraction_
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    raise NotImplementedError
+    dataobj = DataSet()
+    dset = []
+    for i in range(num_tuples):
+      dset.append(dataobj.next_batch(batch_size, fraction_same))
+
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -229,7 +233,7 @@ class DataSet(object):
 
     Returns:if
       x1: 4D numpy array of shape [batch_size, 32, 32, 3]
-      x1: 4D numpy array of shape [batch_size, 32, 32, 3]
+      x2: 4D numpy array of shape [batch_size, 32, 32, 3]
       labels: numpy array of shape [batch_size]
     """
 
@@ -241,55 +245,24 @@ class DataSet(object):
     index_anchor_image = np.random.choice(len(self.images), 1)[0]
     label_anchor_image = self.labels[index_anchor_image]
     anchor_image = self.images[index_anchor_image]
-    class_images_index = np.nonzero(label_anchor_image)[0][0] == np.nonzero(self.labels)[1]
 
+    class_images_index = np.nonzero(label_anchor_image)[0][0] == np.nonzero(self.labels)[1]
     class_images = self.images[class_images_index]
     # class_labels = self.labels[class_images_index]
     random_class_indexes = np.random.choice(len(class_images), fraction_same_number)
     random_class_images = class_images[random_class_indexes]
     random_class_labels = np.ones(len(random_class_images))
 
-    non_class_images_index = np.nonzero(label_anchor_image)[0][0] != np.nonzero(self.labels)[1]
-    non_class_images = self.images[non_class_images_index]
-    # non_class_labels = self.labels[non_class_images_index]
+    # non_class_images_index = np.nonzero(label_anchor_image)[0][0] != np.nonzero(self.labels)[1]
+    non_class_images = self.images[~class_images_index]
     random_non_class_indexes = np.random.choice(len(non_class_images), batch_size - fraction_same_number)
     random_non_class_images = non_class_images[random_non_class_indexes]
     random_non_class_labels = np.zeros(len(random_non_class_images))
 
-    print(label_anchor_image)
-    print(random_class_images.shape)
-    print(random_non_class_images.shape)
-    x1 = np.tile(anchor_image, batch_size)
-    print(x1.shape)
+    x1 = np.tile(anchor_image, (batch_size, 1, 1, 1))
     labels = np.append(random_class_labels, random_non_class_labels)
-    x2 = np.concatenate((random_class_images, random_non_class_images)).shape
+    x2 = np.concatenate((random_class_images, random_non_class_images))
 
-
-
-    # class_images = np.array(self.labels[self.labels == label_anchor_image])
-    # print(class_images.shape)
-    # np.random.choice(len(class_images),int(fraction_same*batch_size))
-
-    # print(round(fraction_same * batch_size))
-    # print([self.labels == label_anchor_image])
-    # class_logical_table = np.array([self.labels == label_anchor_image])
-    # print(class_logical_table)
-    # class_images = self.labels[class_logical_table]
-    # non_class_images = self.labels[~class_logical_table]
-    # print(non_class_images)
-    # random_class_images = class_images[np.random.choice(len(class_images), int(fraction_same * batch_size))]
-    # random_non_class_images = non_class_images[
-    #   np.random.choice(len(non_class_images), (batch_size - len(random_class_images)))]
-    #
-    # print(label_anchor_image)
-
-    # print(anchor_image)
-
-
-
-    x1 = 1
-    x2 = 2
-    labels = 3
     ########################
     # END OF YOUR CODE    #
     ########################

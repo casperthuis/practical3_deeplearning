@@ -9,8 +9,13 @@ import time
 import tensorflow as tf
 import numpy as np
 import cifar10_utils
+import siamese
+from cifar10_siamese_utils import get_cifar10 as get_cifar_10_siamese
 from sklearn.manifold import TSNE
-#import matplotlib import offsetbox
+import matplotlib.pyplot as plt
+from cifar10_siamese_utils import create_dataset
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.svm import SVC
 
 LEARNING_RATE_DEFAULT = 1e-4
 BATCH_SIZE_DEFAULT = 128
@@ -104,7 +109,7 @@ def train():
     if SUMMARY_DEFAULT:    
         merge = tf.merge_all_summaries()
 
-    if SAVE_DEFAULT:
+    if SAVER_DEFAULT:
         saver = tf.train.Saver()
 
     with tf.Session() as sess:
@@ -147,8 +152,8 @@ def train():
 
                 print("Iteration {0:d}/{1:d}. Validation Loss = {2:.3f}, Validation Accuracy = {3:.3f}".format(
                     i, FLAGS.max_steps, l_val, acc_val))
-    if SAVER_DEFAULT:
-        saver.sess(sess, 'model')
+        if SAVER_DEFAULT:
+            saver.sess(sess, FLAGS.checkpoint_dir + '/model')
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -191,11 +196,54 @@ def train_siamese():
     # Set the random seeds for reproducibility. DO NOT CHANGE.
     tf.set_random_seed(42)
     np.random.seed(42)
+    cifar10 = get_cifar_10_siamese('cifar10/cifar-10-batches-py')
 
-    ########################
+    # x, y = cifar10.test.images, cifar10.test.labels
+    # val_set = create_dataset([x,y], 100, FLAGS.batch_size, 0.1)
+
+
+    Siamese = siamese()
+
+    with tf.name_scope('x'):
+        x1 = tf.placeholder("float", [None, 32, 32, 3], name="X_train")
+        x2 = tf.placeholder("float", [None, 32, 32, 3], name="X_train")
+    with tf.name_scope('y'):
+        y = tf.placeholder("float", [None, 1], name="Y_train")
+
+
+    logits = Siamese.inference(x1, )
+    loss = Siamese.loss(logits, y)
+    optimizer = train_step(loss)
+    init = tf.initialize_all_variables()
+
+    with tf.Session() as sess:
+        sess.run(init)
+        cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
+        x_test, y_test = cifar10.test.images, cifar10.test.labels
+
+
+        for i in range(1, FLAGS.max_steps + 1):
+            x_train, y_train = cifar10.train.next_batch(FLAGS.batch_size)
+
+
+            _, l_train = sess.run([optimizer, loss],
+                                                 feed_dict={x: x_train, y: y_train})
+
+            if i % EVAL_FREQ_DEFAULT == 0 or i == 1:
+                print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".format(
+                    i, FLAGS.max_steps, l_train, acc_train))
+                l_val, acc_val = sess.run([loss, accuracy],
+                                              feed_dict={x: x_test, y: y_test})
+
+                print("Iteration {0:d}/{1:d}. Validation Loss = {2:.3f}, Validation Accuracy = {3:.3f}".format(
+                    i, FLAGS.max_steps, l_val, acc_val))
+
+        ########################
     # PUT YOUR CODE HERE  #
     ########################
-    raise NotImplementedError
+
+
+
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -219,19 +267,66 @@ def feature_extraction():
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    sess = tf.Session()
-    new_saver = tf.train.import_meta_graph('model.meta')
-    new_saver.restore(sess, tf.train.latest_checpoint('./'))
-  
+
+    # Set the random seeds for reproducibility. DO NOT CHANGE.
+    tf.set_random_seed(42)
+    np.random.seed(42)
+
+    ########################
+    # PUT YOUR CODE HERE  #
+    ########################
+    Convnn = convnet.ConvNet()
+    Convnn.summary = SUMMARY_DEFAULT
+    with tf.name_scope('x'):
+        x = tf.placeholder("float", [None, 32, 32, 3], name="X_train")
+    with tf.name_scope('y'):
+        y = tf.placeholder("float", [None, Convnn.n_classes], name="Y_train")
+
+    # initialize graph, accuracy and loss
+    logits = Convnn.inference(x)
+    loss = Convnn.loss(logits, y)
+    accuracy = Convnn.accuracy(logits, y)
+
     with tf.Session() as sess:
-        sess.run(init)
+        sess.run(tf.initialize_all_variables())
+        saver = tf.train.Saver()
+        saver.restore(sess, FLAGS.checkpoint_dir + "/model.ckpt")
+
         cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
         x_test, y_test = cifar10.test.images, cifar10.test.labels
 
-    tnse = manifold.TSNE(n_components=2, init='pca', random_state=0)
-    X_tsne = tsne.fit_transform(fcl2)
-    
-    ########################
+        _, l_train, acc_train, logits, fcl2, fcl1, flatten = sess.run([loss, accuracy,
+                                                    Convnn.logits, Convnn.fcl2,
+                                                    Convnn.fcl1, Convnn.flatten],
+                                                feed_dict={x: x_test, y: y_test})
+
+        tnse = TSNE(n_components=2, init='pca', random_state=0)
+        tnse.fit_transform(fcl2)
+        pc = tnse[:, 0:2]
+        prediction = np.argmax(logits)
+        plt.figure(0)
+        plt.scatter([pc[:,0], pc[:,1]], prediction, alpha=0.5)
+        plt.show()
+
+        for label in range(Convnn.n_classes):
+            class_pc = pc[prediction == label]
+            non_class_pc = pc[prediction != label]
+            data = np.random.choice(len(non_class_pc), len(class_pc))
+            
+        # for label in range(Convnn.n_classes):
+        #     y == label
+
+
+
+
+
+
+
+
+
+
+
+        ########################
     # END OF YOUR CODE    #
     ########################
 

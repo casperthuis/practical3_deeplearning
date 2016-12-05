@@ -27,7 +27,11 @@ class ConvNet(object):
         self.weight_reg_strength = 0.000
         self.fcl_initialiser = initializers.xavier_initializer()
         self.conv_initialiser = initializers.xavier_initializer_conv2d()
-        self.summary = False 
+        self.summary = False
+        self.flatten = None
+        self.fcl1 = None
+        self.fcl2 = None
+        self.logits = None
 
     def inference(self, x):
         """
@@ -60,115 +64,18 @@ class ConvNet(object):
             ########################
             # PUT YOUR CODE HERE  #
             ########################
-            #conv1
             
             conv1 = self._conv_layer(x, [5,5,3,64], 1)
             conv2 = self._conv_layer(conv1, [5,5,64,64], 2)
-            flatten_input = tf.reshape(conv2, [-1, 64*8*8])
-            
-            fcl1 = self._fcl_layer(flatten_input, [flatten_input.get_shape()[1].value, 384], 1)
+            flatten = tf.reshape(conv2, [-1, 64*8*8])
+            self.flatten = flatten
+            fcl1 = self._fcl_layer(flatten, [flatten.get_shape()[1].value, 384], 1)
+            self.fcl2 = fcl1
             fcl2 = self._fcl_layer(fcl1, [fcl1.get_shape()[1].value, 192], 2)
+            self.fcl2 = fcl2
             logits = self._fcl_layer(fcl2, [fcl2.get_shape()[1].value, 10], 3, last_layer=True)
-#            with tf.name_scope('conv1') as scope:
-#                weights = tf.get_variable(
-#                            name="conv1/weights",
-#                            shape= [5 ,5, 3, 64],
-#                            initializer=self.conv_initialiser,
-#                            regularizer = regularizers.l2_regularizer(self.weight_reg_strength)
-#                            )
-#
-#                bias = tf.get_variable(
-#                            name='conv1/bias',
-#                            shape= [64],
-#                            initializer= tf.constant_initializer(0.0))
-#
-#                conv = tf.nn.conv2d(x, weights, [1, 1, 1, 1], padding='SAME')
-#                relu = tf.nn.relu(tf.nn.bias_add(conv, bias))
-#                conv1 = tf.nn.max_pool(relu,
-#                                       ksize= [1, 3, 3, 1],
-#                                       strides=[1, 2, 2, 1],
-#                                       padding='SAME',
-#                                       name='pool1')
-            # conv2
-#            with tf.name_scope('conv2') as scope:
-#                weights = tf.get_variable(
-#                    name="conv2/weights",
-#                    shape=[5, 5, 64, 64],
-#                    initializer=self.conv_initialiser,
-#                    regularizer = regularizers.l2_regularizer(self.weight_reg_strength)
-#                )
-
-#                bias = tf.get_variable(
-#                    name='conv2/bias',
-#                    shape=[64],
-#                    initializer=tf.constant_initializer(0.0))
-#
-#                conv = tf.nn.conv2d(conv1, weights, [1, 1, 1, 1], padding='SAME')
-#                relu = tf.nn.relu(tf.nn:tabe.bias_add(conv, bias))
-#                conv2 = tf.nn.max_pool(relu,
-#                                       ksize=[1, 3, 3, 1],
-#                                       strides=[1, 2, 2, 1],
-#                                       padding='SAME',
-#                                       name='pool')
-#
-#
-#            flatten_input = tf.reshape(conv2, [-1, 64 * 8 * 8])
-
-#            with tf.name_scope('fcl1') as scope:
-#                # print(conv2.get_shape)
-#                # TODO REMOVE NUMBER HARDCODED
-#                flatten_input = tf.reshape(conv2, [-1, 64 * 8 * 8])
-#                # print(flatten_input.get_shape())
-#                weights = tf.get_variable(
-#                    # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
-#                    shape=[flatten_input.get_shape()[1].value, 384],
-#                    initializer= self.fcl_initialiser,
-#                    regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
-#                    name="fcl1/weights")
-#
-#                # Initialise bias with the settings of FLAGS
-#                bias = tf.get_variable(
-#                    shape=[384],
-#                    initializer=tf.constant_initializer(0.0),
-#                    name="fcl1/bias")
-#
-#                fcl1_input = tf.nn.bias_add(tf.matmul(flatten_input, weights), bias)
-#                fcl1_output = tf.nn.relu(fcl1_input)
-
-#            with tf.name_scope('fcl2'):
-#
-#                weights = tf.get_variable(
-#                    # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
-#                    shape=[384, 192],
-#                    initializer= self.fcl_initialiser,
-#                    regularizer= regularizers.l2_regularizer(self.weight_reg_strength),
-#                    name="fcl2/weights")
-#
-#                # Initialise bias with the settings of FLAGS
-#                bias = tf.get_variable(
-#                    shape=[192],
-#                    initializer=tf.constant_initializer(0.0),
-#                    name="fcl2/bias")
-#
-#                fcl2_input = tf.nn.bias_add(tf.matmul(fcl1, weights), bias)
-#                fcl2_output = tf.nn.relu(fcl2_input)
-#            with tf.name_scope('fcl3'):
-#                weights = tf.get_variable(
-#                    # TODO MIGHT BE THAT THE OUTPUT SIZE COMES FIRST
-#                    shape=[192, 10],
-#                    initializer=self.fcl_initialiser,
-#                    regularizer=regularizers.l2_regularizer(self.weight_reg_strength),
-#                    name="fcl3/weights")
-#
-#                # Initialise bias with the settings of FLAGS
-#                bias = tf.get_variable(
-#                    shape=[10],
-#                    initializer=tf.constant_initializer(0.0),
-#                    name="fcl3/bias")
-#
-#                logits = tf.nn.bias_add(tf.matmul(fcl2, weights), bias)
-
-                ########################
+            self.logits = logits
+            ########################
             # END OF YOUR CODE    #
             ########################
         return logits
