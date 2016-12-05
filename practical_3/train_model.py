@@ -19,7 +19,7 @@ EVAL_FREQ_DEFAULT = 1000
 CHECKPOINT_FREQ_DEFAULT = 5000
 PRINT_FREQ_DEFAULT = 10
 OPTIMIZER_DEFAULT = 'ADAM'
-SUMMARY_DEFAULT = True 
+SUMMARY_DEFAULT = False 
 SAVER_DEFAULT = True
 DATA_DIR_DEFAULT = './cifar10/cifar-10-batches-py'
 LOG_DIR_DEFAULT = './logs/cifar10'
@@ -104,7 +104,7 @@ def train():
     if SUMMARY_DEFAULT:    
         merge = tf.merge_all_summaries()
 
-    if SAVE_DEFAULT:
+    if SAVER_DEFAULT:
         saver = tf.train.Saver()
 
     with tf.Session() as sess:
@@ -147,8 +147,8 @@ def train():
 
                 print("Iteration {0:d}/{1:d}. Validation Loss = {2:.3f}, Validation Accuracy = {3:.3f}".format(
                     i, FLAGS.max_steps, l_val, acc_val))
-    if SAVER_DEFAULT:
-        saver.sess(sess, 'model')
+        if SAVER_DEFAULT:
+            saver.save(sess, FLAGS.checkpoint_dir + '/my_model.cpkt')
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -219,17 +219,17 @@ def feature_extraction():
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    sess = tf.Session()
-    new_saver = tf.train.import_meta_graph('model.meta')
-    new_saver.restore(sess, tf.train.latest_checpoint('./'))
-  
-    with tf.Session() as sess:
-        sess.run(init)
-        cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
-        x_test, y_test = cifar10.test.images, cifar10.test.labels
+    saver = tf.train.Saver()
 
-    tnse = manifold.TSNE(n_components=2, init='pca', random_state=0)
-    X_tsne = tsne.fit_transform(fcl2)
+    #print("Hello") 
+    #with tf.Session() as sess:
+    #    
+    #    saver.restore(sess, 'my_model.ckpt')
+    #    cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
+    #    x_test, y_test = cifar10.test.images, cifar10.test.labels
+
+    #tnse = manifold.TSNE(n_components=2, init='pca', random_state=0)
+    #X_tsne = tsne.fit_transform(fcl2)
     
     ########################
     # END OF YOUR CODE    #
@@ -291,7 +291,7 @@ def main(_):
 
     initialize_folders()
     start = time.time()
-    if FLAGS.is_train:
+    if int(FLAGS.is_train):
         if FLAGS.train_model == 'linear':
             train()
         elif FLAGS.train_model == 'siamese':
@@ -301,6 +301,9 @@ def main(_):
     else:
         feature_extraction()
     print(time.time() - start)
+
+
+
 if __name__ == '__main__':
     # Command line arguments
     parser = argparse.ArgumentParser()
@@ -331,3 +334,5 @@ if __name__ == '__main__':
     FLAGS, unparsed = parser.parse_known_args()
 
     tf.app.run()
+
+

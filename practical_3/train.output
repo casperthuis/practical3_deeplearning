@@ -1,0 +1,14 @@
+is_train : True
+data_dir : ./cifar10/cifar-10-batches-py
+eval_freq : 1000
+learning_rate : 0.0001
+print_freq : 10
+batch_size : 128
+checkpoint_dir : ./checkpoints
+log_dir : ./logs/cifar10
+train_model : linear
+checkpoint_freq : 5000
+max_steps : 100
+Iteration 1/100. Train Loss = 23.984, Train Accuracy = 0.156
+Iteration 1/100. Validation Loss = 18.344, Validation Accuracy = 0.122
+15.2095329762
