@@ -313,30 +313,28 @@ def feature_extraction():
         print("Calculating TSNE")
         tnse = TSNE(n_components=2, init='pca', random_state=0)
         pca = tnse.fit_transform(fcl2)
-        print(pca.shape)
-        print(logits.shape)        
         prediction = np.argmax(logits, axis=1)
-        print(pca)
-        print(prediction) 
         fig = plt.figure()
-        print(np.max(prediction))
-        print(np.min(prediction))
-        plt.scatter(pca[:,0],pca[:,1], c=prediction)
-        
         
              
-        #class_points = pca[prediction == 1]
+        #class_points = pca[prediction == ]
         
         #plt.scatter(class_points[:,0], class_points[:,1], color='b'  , alpha=0.5)
         #class_points = pca[prediction == 2]
         
         #plt.scatter(class_points[:,0], class_points[:,1], color='r'  , alpha=0.5)
+      
+        classes = ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+        plots = []
         for i in range(Convnn.n_classes):
             class_points = pca[prediction == i]
-            plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.Set1(i*10), alpha=0.5)
+            plot = plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.Set1(i*25), alpha=0.5)
+            plots.append(plot)
 
+        plt.legend(tuple(plots), tuple(classes))
         plt.savefig('images/tsne_plot.png')
         
+
         #for label in range(Convnn.n_classes):
         
         #    class_pc = pc[prediction == label]
