@@ -319,7 +319,7 @@ def feature_extraction():
         fig = plt.figure()
         print(np.max(prediction))
         print(np.min(prediction))
-        plt.scatter(pca[:,0],pca[:,1], prediction)
+        plt.scatter(pca[:,0],pca[:,1], c=prediction)
         
         
              
