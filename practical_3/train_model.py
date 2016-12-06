@@ -299,13 +299,15 @@ def feature_extraction():
         print("Evaluating model")
         cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
         x_test, y_test = cifar10.test.images, cifar10.test.labels
+        print(x_test.shape)
+        print(y_test.shape)
         l, acc, flatten, fcl1 ,fcl2, logits = sess.run([loss, accuracy,
                                         Convnn.flatten,
                                         Convnn.fcl1,
                                         Convnn.fcl2,
                                         Convnn.logits ],
                                       
-                                        feed_dict={x: x_test, y: y_test})
+                                        feed_dict={x: x_test[0:1000,:,:,:], y: y_test[0:1000]})
 
 
         print("Calculating TSNE")
@@ -329,8 +331,9 @@ def feature_extraction():
         #class_points = pca[prediction == 2]
         
         #plt.scatter(class_points[:,0], class_points[:,1], color='r'  , alpha=0.5)
-        
-
+        for i in range(Convnn.n_classes):
+            class_points = pca[prediction == i]
+            plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.Set1(i*10), alpha=0.5)
 
         plt.savefig('images/tsne_plot.png')
         
