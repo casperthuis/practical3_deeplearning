@@ -331,7 +331,7 @@ def feature_extraction():
             plot = plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.Set1(i*25), alpha=0.5)
             plots.append(plot)
 
-        plt.legend(tuple(plots), tuple(classes))
+        plt.legend(tuple(classes))
         plt.savefig('images/tsne_plot.png')
         
 
