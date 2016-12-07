@@ -317,20 +317,13 @@ def feature_extraction():
         fig = plt.figure()
         
              
-        #class_points = pca[prediction == ]
-        
-        #plt.scatter(class_points[:,0], class_points[:,1], color='b'  , alpha=0.5)
-        #class_points = pca[prediction == 2]
-        
-        #plt.scatter(class_points[:,0], class_points[:,1], color='r'  , alpha=0.5)
       
         classes = ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-        plots = []
-        for i in range(Convnn.n_classes):
-            class_points = pca[prediction == i]
-            plot = plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.Set1(i*25), alpha=0.5)
-            plots.append(plot)
-
+        #for i in range(Convnn.n_classes):
+        #    class_points = pca[prediction == i]
+        #    plot = plt.scatter(class_points[:,0], class_points[:,1], color=plt.cm.Set1(i*25), alpha=0.5)
+        #    plots.append(plot)
+        plt.scatter(pca[:,0], pca[:,1], c=prediction, alpha=0.4)
         plt.legend(tuple(classes))
         plt.savefig('images/tsne_plot.png')
         
